@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Pase Kòmann - Booming Store</title>
+    <style>
+        :root {
+            --background-color: #1a1a2e;
+            --card-color: #16213e;
+            --primary-color: #0f3460;
+            --accent-color: #3f72af;
+            --text-color: #e3e3e3;
+            --header-text-color: #ffffff;
+            --font-main: 'Poppins', sans-serif;
+        }
+        body { font-family: var(--font-main); background-color: var(--background-color); color: var(--text-color); margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 40px auto; padding: 40px; background-color: var(--card-color); border: 1px solid var(--primary-color); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        h1 { color: var(--header-text-color); text-align: center; font-weight: 600; }
+        .product-name { background-color: var(--primary-color); padding: 15px; border-radius: 8px; margin-bottom: 25px; font-size: 1.2em; text-align: center; font-weight: 600; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid var(--primary-color); background-color: var(--background-color); color: var(--text-color); border-radius: 8px; box-sizing: border-box; }
+        .submit-button { display: block; width: 100%; padding: 15px; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background-color 0.3s; }
+        .submit-button:hover { background-color: #5a8ec9; }
+        .back-link { display: block; text-align: center; margin-top: 25px; color: var(--accent-color); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Konfime Kòmann Ou</h1>
+        <div class="product-name" id="product-display"></div>
+        <form id="order-form" action="https://formspree.io/f/mwpbojgy" method="POST">
+            <input type="hidden" id="product-input" name="Pwodwi">
+            <div class="form-group">
+                <label for="name">Non konplè ou</label>
+                <input type="text" id="name" name="Non Kliyan" required>
+            </div>
+            <div class="form-group">
+                <label for="contact">Imèl ou Telefòn ou</label>
+                <input type="text" id="contact" name="Kontak Kliyan" required>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Kantite</label>
+                <input type="number" id="quantity" name="Kantite" value="1" min="1" required>
+            </div>
+            <button type="submit" class="submit-button">Voye Kòmann sa a</button>
+        </form>
+        <a href="index.html" class="back-link">Retounen nan boutik la</a>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const productName = params.get('pwodwi');
+        if (productName) {
+            document.getElementById('product-display').textContent = productName;
+            document.getElementById('product-input').value = productName;
+        } else {
+            document.getElementById('product-display').textContent = 'Pwodwi pa espesifye';
+        }
+    </script>
+
+</body>
+</html>

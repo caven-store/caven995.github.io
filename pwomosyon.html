@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Pwomosyon - Booming Store</title>
+    <style>
+        :root {
+            --background-color: #1a1a2e;
+            --card-color: #16213e;
+            --primary-color: #0f3460;
+            --accent-color: #e94560; /* Yon koulè diferan pou pwomosyon */
+            --text-color: #e3e3e3;
+            --header-text-color: #ffffff;
+            --font-main: 'Poppins', sans-serif;
+        }
+        body { font-family: var(--font-main); margin: 0; background-color: var(--background-color); color: var(--text-color); }
+        header { background-color: var(--primary-color); color: var(--header-text-color); padding: 25px 0; text-align: center; font-size: 2.2em; font-weight: 700; }
+        main { padding: 20px; }
+        .promo-header { text-align: center; color: var(--accent-color); font-size: 2em; margin-bottom: 30px; }
+        .product-gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; min-height: 50vh;}
+        .product-card { background-color: var(--card-color); border: 2px solid var(--accent-color); border-radius: 12px; width: 310px; box-shadow: 0 4px 20px rgba(233, 69, 96, 0.3); overflow: hidden; display: flex; flex-direction: column; }
+        .product-image { width: 100%; height: 220px; object-fit: cover; background-color: #333; }
+        .product-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .product-title { font-size: 1.3em; font-weight: 600; margin: 0 0 10px 0; color: var(--header-text-color); }
+        .product-description { font-size: 0.9em; margin: 0 0 15px 0; line-height: 1.5; }
+        .product-price { margin-top: auto; }
+        .original-price { font-size: 1em; text-decoration: line-through; color: #888; margin-right: 10px; }
+        .sale-price { font-size: 1.4em; font-weight: bold; color: var(--accent-color); }
+        .product-actions { padding: 0 20px 20px 20px; }
+        .order-button { display: block; width: 100%; padding: 12px; background-color: #3f72af; color: white; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box; transition: background-color 0.3s; }
+        .order-button:hover { background-color: #5a8ec9; }
+        .loading-message { font-size: 1.5em; text-align: center; }
+        .back-link { display: block; text-align: center; margin-top: 40px; color: #3f72af; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <header>Booming Store</header>
+    <main>
+        <h1 class="promo-header">🔥 Pwomosyon Espesyal 🔥</h1>
+        <div class="product-gallery" id="product-gallery">
+            <p class="loading-message">Ap chache pwomosyon yo...</p>
+        </div>
+        <a href="index.html" class="back-link"> Gade tout pwodwi yo </a>
+    </main>
+    <script>
+        const gallery = document.getElementById('product-gallery');
+        const DATABASE_URL = 'https://docs.google.com/spreadsheets/d/13GodGq2xIkY7W0v6OeTBD0tgyDJ2lRQAGjO4-83fFqY/gviz/tq?tqx=out:json'; 
+
+        function displayProducts(productsToDisplay) {
+            gallery.innerHTML = '';
+            if (productsToDisplay.length === 0) {
+                gallery.innerHTML = '<p class="loading-message">Pa gen okenn pwomosyon pou kounye a.</p>';
+                return;
+            }
+            productsToDisplay.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                let priceHTML = `<p class="product-price"><span class="sale-price">${product.price}</span></p>`;
+                if (product.sale_price) {
+                    priceHTML = `<p class="product-price">
+                        <span class="sale-price">${product.sale_price}</span> 
+                        <span class="original-price">${product.price}</span>
+                    </p>`;
+                }
+
+                card.innerHTML = `<img src="${product.imageurl}" alt="${product.name}" class="product-image"><div class="product-info"><p class="product-title">${product.name}</p><p class="product-description">${product.description}</p>${priceHTML}</div><div class="product-actions"><a href="komand.html?pwodwi=${encodeURIComponent(product.name)}" class="order-button">Kòmande</a></div>`;
+                gallery.appendChild(card);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch(DATABASE_URL)
+                .then(response => response.text())
+                .then(text => {
+                    const jsonData = JSON.parse(text.substring(47, text.length - 2));
+                    const allProducts = jsonData.table.rows.map(row => ({
+                        name: row.c[0]?.v || '', category: row.c[1]?.v || '',
+                        description: row.c[2]?.v || '', price: row.c[3]?.v || '',
+                        imageurl: row.c[4]?.v || '', sale_price: row.c[5]?.v || null,
+                        on_promotion: row.c[6]?.v || ''
+                    }));
+                    
+                    const promotionProducts = allProducts.filter(p => p.on_promotion === 'WI');
+                    displayProducts(promotionProducts);
+                })
+                .catch(error => {
+                    console.error("Erè:", error);
+                    gallery.innerHTML = '<p class="loading-message">Erè: Nou pa ka chaje pwomosyon yo.</p>';
+                });
+        });
+    </script>
+</body>
+</html>

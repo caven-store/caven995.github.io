@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Booming Store</title>
+    <style>
+        :root {
+            --background-color: #1a1a2e;
+            --card-color: #16213e;
+            --primary-color: #0f3460;
+            --accent-color: #3f72af;
+            --text-color: #e3e3e3;
+            --header-text-color: #ffffff;
+            --font-main: 'Poppins', sans-serif;
+        }
+        body { font-family: var(--font-main); margin: 0; background-color: var(--background-color); color: var(--text-color); }
+        header { background-color: var(--primary-color); color: var(--header-text-color); padding: 15px 20px; text-align: center; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 5; }
+        .header-title { font-size: 1.8em; font-weight: 700; }
+        .search-container { width: 50%; }
+        #search-bar { width: 100%; padding: 10px; border-radius: 8px; border: none; background-color: var(--background-color); color: var(--text-color); font-size: 1em; }
+        .hamburger-menu { font-size: 2em; cursor: pointer; }
+        .sidebar { height: 100%; width: 280px; position: fixed; z-index: 10; top: 0; left: -280px; background-color: var(--primary-color); overflow-x: hidden; transition: 0.5s; padding-top: 60px; }
+        .sidebar-active .sidebar { left: 0; }
+        .sidebar .close-btn { position: absolute; top: 15px; right: 25px; font-size: 36px; color: var(--text-color); text-decoration: none; }
+        .sidebar h2 { color: var(--accent-color); padding: 0 32px; }
+        .sidebar ul { list-style-type: none; padding: 0; }
+        .sidebar ul li a { padding: 10px 32px; text-decoration: none; font-size: 1.1em; color: var(--text-color); display: block; transition: 0.3s; }
+        .sidebar ul li a:hover { background-color: var(--accent-color); }
+        main { padding: 20px; }
+        .product-gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; min-height: 50vh;}
+        .product-card { background-color: var(--card-color); border: 1px solid var(--primary-color); border-radius: 12px; width: 310px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.3s, box-shadow 0.3s; }
+        .product-card:hover { transform: translateY(-10px); box-shadow: 0 8px 25px rgba(63, 114, 175, 0.3); }
+        .product-image { width: 100%; height: 220px; object-fit: cover; background-color: #333; }
+        .product-info { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .product-title { font-size: 1.3em; font-weight: 600; margin: 0 0 10px 0; color: var(--header-text-color); }
+        .product-description { font-size: 0.9em; margin: 0 0 15px 0; line-height: 1.5; }
+        .product-price { font-size: 1.2em; font-weight: bold; color: var(--accent-color); margin-top: auto; }
+        .product-actions { padding: 0 20px 20px 20px; }
+        .order-button { display: block; width: 100%; padding: 12px; background-color: var(--accent-color); color: white; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; box-sizing: border-box; transition: background-color 0.3s; }
+        .order-button:hover { background-color: #5a8ec9; }
+        .loading-message { font-size: 1.5em; text-align: center; color: var(--text-color); }
+        footer { text-align: center; padding: 40px 20px; background-color: var(--primary-color); color: var(--text-color); margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <nav id="category-menu" class="sidebar">
+        <a href="#" class="close-btn">&times;</a>
+        <h2>Kategori</h2>
+        <ul id="category-list"></ul>
+    </nav>
+    <header>
+        <div class="hamburger-menu">&#9776;</div>
+        <div class="header-title">Booming Store</div>
+        <div class="search-container">
+            <input type="search" id="search-bar" placeholder="Chèche yon pwodwi...">
+        </div>
+    </header>
+    <main>
+        <div class="product-gallery" id="product-gallery">
+            <p class="loading-message">Ap chaje pwodwi yo, tanpri tann...</p>
+        </div>
+    </main>
+    <footer>
+        <h2>Ou gen yon kesyon sou yon pwodwi ?</h2>
+        <p>Kontakte nou pou tout enfòmasyon ou bezwen.</p>
+        <a href="mailto:cdish23@gmail.com" class="contact-button">Voye yon imèl pou nou</a>
+    </footer>
+
+    <script>
+    const gallery = document.getElementById('product-gallery');
+    const searchBar = document.getElementById('search-bar');
+    const categoryList = document.getElementById('category-list');
+    const hamburger = document.querySelector('.hamburger-menu');
+    const closeBtn = document.querySelector('.close-btn');
+    let allProducts = [];
+
+    const DATABASE_URL = 'https://docs.google.com/spreadsheets/d/13GodGq2xIkY7W0v6OeTBD0tgyDJ2lRQAGjO4-83fFqY/gviz/tq?tqx=out:json'; 
+
+    function displayProducts(productsToDisplay) {
+        gallery.innerHTML = '';
+        if (productsToDisplay.length === 0) {
+            gallery.innerHTML = '<p class="loading-message">Okenn pwodwi pa koresponn.</p>';
+            return;
+        }
+        productsToDisplay.forEach(product => {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            
+            let priceHTML = `<p class="product-price">${product.price}</p>`;
+            // Si pwodwi a an pwomosyon, montre de pri yo
+            if (product.on_promotion === 'WI' && product.sale_price) {
+                priceHTML = `<p class="product-price">
+                    <span style="font-size: 1.2em; color: #e94560;">${product.sale_price}</span> 
+                    <span style="font-size: 0.9em; text-decoration: line-through; color: #888; margin-left: 10px;">${product.price}</span>
+                </p>`;
+            }
+
+            card.innerHTML = `<img src="${product.imageurl}" alt="${product.name}" class="product-image"><div class="product-info"><p class="product-title">${product.name}</p><p class="product-description">${product.description}</p>${priceHTML}</div><div class="product-actions"><a href="komand.html?pwodwi=${encodeURIComponent(product.name)}" class="order-button">Kòmande</a></div>`;
+            gallery.appendChild(card);
+        });
+    }
+
+    function filterProducts() {
+        const searchTerm = searchBar.value.toLowerCase();
+        const selectedCategory = document.querySelector('.category-link.active')?.dataset.category;
+        let filteredProducts = allProducts;
+        if (selectedCategory && selectedCategory !== 'Tout') {
+            filteredProducts = filteredProducts.filter(p => p.category === selectedCategory);
+        }
+        if (searchTerm) {
+            filteredProducts = filteredProducts.filter(p => p.name.toLowerCase().includes(searchTerm) || p.description.toLowerCase().includes(searchTerm));
+        }
+        displayProducts(filteredProducts);
+    }
+
+    function setupCategories() {
+        categoryList.innerHTML = '';
+        
+        // AJOUTE LYEN PWOMOSYON AN
+        const promoLi = document.createElement('li');
+        promoLi.innerHTML = `<a href="promosyon.html" style="color: #e94560; font-weight: bold;">🔥 Pwomosyon Espesyal</a>`;
+        categoryList.appendChild(promoLi);
+        const separatorLi = document.createElement('li');
+        separatorLi.innerHTML = `<hr style="border-color: #0f3460;">`;
+        categoryList.appendChild(separatorLi);
+
+        const categories = ['Tout', ...new Set(allProducts.map(p => p.category).filter(c => c))];
+        categories.forEach(category => {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="#" class="category-link" data-category="${category}">${category}</a>`;
+            categoryList.appendChild(li);
+        });
+        
+        document.querySelectorAll('.category-link').forEach(link => { link.addEventListener('click', function(e) { e.preventDefault(); document.querySelectorAll('.category-link').forEach(l => l.classList.remove('active')); this.classList.add('active'); filterProducts(); document.body.classList.remove('sidebar-active'); }); });
+        const allCategoryLink = document.querySelector('.category-link[data-category="Tout"]');
+        if (allCategoryLink) allCategoryLink.classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch(DATABASE_URL)
+            .then(response => response.text())
+            .then(text => {
+                const jsonData = JSON.parse(text.substring(47, text.length - 2));
+                allProducts = jsonData.table.rows.map(row => ({
+                    name: row.c[0]?.v || '', category: row.c[1]?.v || '',
+                    description: row.c[2]?.v || '', price: row.c[3]?.v || '',
+                    imageurl: row.c[4]?.v || '', sale_price: row.c[5]?.v || null,
+                    on_promotion: row.c[6]?.v || ''
+                }));
+                displayProducts(allProducts);
+                setupCategories();
+            })
+            .catch(error => { console.error("Erè:", error); gallery.innerHTML = '<p class="loading-message">Erè: Nou pa ka chaje pwodwi yo.</p>'; });
+    });
+
+    hamburger.addEventListener('click', () => { document.body.classList.add('sidebar-active'); });
+    closeBtn.addEventListener('click', (e) => { e.preventDefault(); document.body.classList.remove('sidebar-active'); });
+    searchBar.addEventListener('input', filterProducts);
+</script>
+</body>
+</html>
